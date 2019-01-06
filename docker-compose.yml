@@ -7,7 +7,7 @@ services:
     ports:
       - '8086:8086'
     volumes:
-      - influxdb_data:/var/lib/influxdb
+      - E:\t\MNT\Visualisation\Dockerdata\influxdb:/var/lib/influxdb
   grafana:
     build: grafana
     env_file: configuration.env
@@ -16,7 +16,7 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - grafana_data:/var/lib/grafana
+      - E:\t\MNT\Visualisation\Dockerdata\grafana:/var/lib/grafana
 
 volumes:
   grafana_data: {}
