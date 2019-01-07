@@ -1,0 +1,17 @@
+{
+  "profiles": {
+    "EventhubToInfluxDB": {
+      "commandName": "Project"
+    },
+    "Dummy": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "EH2TI_EventHub__Name": "aa",
+        "EH2TI_Storage__ConnectionString": "aaa",
+        "EH2TI_EventHub__ConsumerGroup": "aaa",
+        "EH2TI_EventHub__ConnectionString": "aa",
+        "EH2TI_Storage__Container": "xcdcccc"
+      }
+    }
+  }
+}
