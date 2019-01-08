@@ -10,6 +10,8 @@ using System.Linq;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Azure.EventHubs;
+using Microsoft.Azure.EventHubs.Processor;
 
 namespace EventhubToInfluxDB
 {
@@ -45,6 +47,7 @@ namespace EventhubToInfluxDB
                     Console.WriteLine($"'{item.Key}' - {item.Value}");
                 }
                 Console.WriteLine("Exiting.");
+                Console.ReadLine();
                 return;
             }
 
@@ -69,8 +72,7 @@ namespace EventhubToInfluxDB
 
             //RunServerAsync(args).Wait();
             ended.Wait();
-            System.Console.WriteLine("Shutdown complete. Exiting.");
-            Console.ReadLine();
+                        
         }
 
 
@@ -89,26 +91,66 @@ namespace EventhubToInfluxDB
                         .AddConsole();
 
                 });
-
+            
             var serviceProvider = serviceCollection.BuildServiceProvider();
             // getting the logger using the class's name is conventional
             _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
         }
 
         private async Task RunServerAsync(string[] args)
-        {
-            
+        {            
             string EventHubConnectionString = config["EventHub:ConnectionString"];
             string EventHubName = config["EventHub:Name"];
             string EventHubConsumerGroupName = config["EventHub:ConsumerGroup"];
             string StorageConnectionString = config["Storage:ConnectionString"];
             string StorageContainer = config["Storage:Container"];
-            Console.WriteLine("Started.");
-            startwait.Wait();
-            Console.WriteLine("Stopping.");
 
-            ended.Set();
-            Console.WriteLine("Stopped.");
+            string MeasurementName = config["InfluxDb:Measurement:Name"];
+            string TimestampName = config["InfluxDb:Measurement:Timestamp"];
+
+            var tags = new List<string>();
+            var fields = new List<string>();
+
+            config.Bind("InfluxDb:Measurement:Tags", tags);
+            config.Bind("InfluxDb:Measurement:Fields", fields);
+            
+            try
+            {
+
+                MessageConverter mc = new MessageConverter(MeasurementName, TimestampName, tags, fields);
+                EventProcessorFactory eventProcessorFactory = new EventProcessorFactory(mc);
+                
+                var eventProcessorHost = new EventProcessorHost(
+                    EventHubName,
+                    EventHubConsumerGroupName,
+                    EventHubConnectionString,
+                    StorageConnectionString,
+                    StorageContainer);
+
+                var _eventProcessorOptions = new EventProcessorOptions();
+
+                // Registers the Event Processor Host and starts receiving messages
+                await eventProcessorHost.RegisterEventProcessorFactoryAsync(eventProcessorFactory, _eventProcessorOptions);
+
+                //await eventProcessorHost.RegisterEventProcessorAsync<EventProcessor>();
+                _logger.LogInformation("Started");
+                
+                startwait.Wait();                
+                _logger.LogInformation("Stopping");
+                
+                await eventProcessorHost.UnregisterEventProcessorAsync();
+                _logger.LogInformation("Stopped");
+                
+            }
+            catch (Exception e)
+            {
+                startwait.Set();
+                _logger.LogError($"{e}");
+            }
+            finally
+            {
+                ended.Set();                
+            }
         }
 
 
@@ -124,7 +166,10 @@ namespace EventhubToInfluxDB
                 "EventHub:Name",
                 "EventHub:ConsumerGroup",
                 "Storage:ConnectionString",                
-                "Storage:Container"                
+                "Storage:Container",
+                "InfluxDb:Measurement:Name",
+                "InfluxDb:Measurement:Timestamp",
+                "InfluxDb:Measurement:Fields:0"
             };
 
             var lookup = config.AsEnumerable().ToDictionary((i) => { return i.Key; });
