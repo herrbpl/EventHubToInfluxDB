@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,14 @@ using System.Text.RegularExpressions;
 namespace EventhubToInfluxDB
 {
     
+    public class MessageConverterOptions
+    {
+        public string Name { get; set; }
+        public string Timestamp { get; set; }
+        public List<string> Tags { get; set; }
+        public List<string> Fields { get; set; }
+    }
+
     internal class MessageConverter
     {
 
@@ -18,14 +27,15 @@ namespace EventhubToInfluxDB
         List<string> _tagnames;
         List<string> _fieldnames;
 
-        public MessageConverter(string measurementName, string timestampName, List<string> tagnames, List<string> fieldnames)
+        //public MessageConverter(string measurementName, string timestampName, List<string> tagnames, List<string> fieldnames)
+        public MessageConverter(IOptionsMonitor<MessageConverterOptions> optionsMonitor)
         {
-            
-            _measurementName = measurementName ?? throw new ArgumentNullException();
+            var options = optionsMonitor.CurrentValue;
+            _measurementName = options.Name ?? throw new ArgumentNullException();
 
-            _timestampName = timestampName;
-            _tagnames = tagnames ?? throw new ArgumentNullException();
-            _fieldnames = fieldnames ?? throw new ArgumentNullException();
+            _timestampName = options.Timestamp;
+            _tagnames = options.Tags ?? throw new ArgumentNullException();
+            _fieldnames = options.Fields ?? throw new ArgumentNullException();
         }
 
         // converts json message to InfluxDB line format

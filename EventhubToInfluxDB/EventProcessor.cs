@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.EventHubs.Processor;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -12,9 +13,15 @@ namespace EventhubToInfluxDB
     class EventProcessor: IEventProcessor
     {
         private readonly MessageConverter _mg;
-        public EventProcessor(MessageConverter mg)
+        private readonly InfluxInjector _ii;
+        private ILogger _logger;
+
+        public EventProcessor(ILogger<EventProcessor> logger, MessageConverter mg, InfluxInjector influxInjector)
         {
+            _logger = logger ?? throw new ArgumentNullException();
             _mg = mg ?? throw new ArgumentNullException();
+            _ii = influxInjector ?? throw new ArgumentNullException();
+            Console.WriteLine("EventProcessor created!");
         }
 
         public Task CloseAsync(PartitionContext context, CloseReason reason)
@@ -36,7 +43,7 @@ namespace EventhubToInfluxDB
         }
 
 
-        public Task ProcessEventsAsync(PartitionContext context, IEnumerable<EventData> messages)
+        public async Task ProcessEventsAsync(PartitionContext context, IEnumerable<EventData> messages)
         {
             foreach (var eventData in messages)
             {
@@ -49,11 +56,12 @@ namespace EventhubToInfluxDB
                 // if message processing fails, for example, if influxdb is down, message will not be delivered. 
                 // to eliminate that, internal queue should be used for forage and processing. 
 
-                var result = _mg.Convert(data, null, null);
+                var result = _mg.Convert(data, null, null);                
 
                 if (result != null)
                 {
-                    Console.WriteLine($"{result}");
+                    Console.WriteLine(result);
+                    await _ii.InjectAsync(result);
                 }
 
                 /*var jsonstr = JsonConvert.SerializeObject(eventData, Formatting.Indented);
@@ -62,7 +70,7 @@ namespace EventhubToInfluxDB
 
             }
             
-            return context.CheckpointAsync();
+            await context.CheckpointAsync();
         }
     }
 }

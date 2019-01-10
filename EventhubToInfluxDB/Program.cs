@@ -22,6 +22,7 @@ namespace EventhubToInfluxDB
 
         private static IConfigurationRoot config;
         private readonly ILogger _logger;
+        private readonly IServiceProvider _serviceProvider;  
 
 
         static void Main(string[] args)
@@ -85,16 +86,27 @@ namespace EventhubToInfluxDB
                 {
                     builder
                         .AddConfiguration(config.GetSection("Logging"))
-                        .AddFilter("Microsoft", LogLevel.Warning)
+                        /*.AddFilter("Microsoft", LogLevel.Warning)
                         .AddFilter("System", LogLevel.Warning)
-                        .AddFilter("EventhubToInfluxDB.Program", LogLevel.Debug)
+                        .AddFilter("EventhubToInfluxDB.Program", LogLevel.Debug)*/
                         .AddConsole();
 
                 });
+
+            serviceCollection.AddOptions();            
+            serviceCollection.Configure<InfluxOptions>(config.GetSection("InfluxDB").GetSection("Server"));
+            serviceCollection.Configure<MessageConverterOptions>(config.GetSection("InfluxDB").GetSection("Measurement"));
+            serviceCollection.AddScoped<InfluxInjector>();
+            serviceCollection.AddScoped<MessageConverter>();
+            serviceCollection.AddScoped<EventProcessorFactory>();
             
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+
+            _serviceProvider = serviceCollection.BuildServiceProvider();
             // getting the logger using the class's name is conventional
-            _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+            _logger = _serviceProvider.GetRequiredService<ILogger<Program>>();
+          
+            
         }
 
         private async Task RunServerAsync(string[] args)
@@ -105,6 +117,7 @@ namespace EventhubToInfluxDB
             string StorageConnectionString = config["Storage:ConnectionString"];
             string StorageContainer = config["Storage:Container"];
 
+            /*
             string MeasurementName = config["InfluxDb:Measurement:Name"];
             string TimestampName = config["InfluxDb:Measurement:Timestamp"];
 
@@ -113,43 +126,49 @@ namespace EventhubToInfluxDB
 
             config.Bind("InfluxDb:Measurement:Tags", tags);
             config.Bind("InfluxDb:Measurement:Fields", fields);
-            
-            try
+            */
+
+            using (var scope = _serviceProvider.CreateScope())
             {
+                EventProcessorFactory eventProcessorFactory = scope.ServiceProvider.GetRequiredService<EventProcessorFactory>();
 
-                MessageConverter mc = new MessageConverter(MeasurementName, TimestampName, tags, fields);
-                EventProcessorFactory eventProcessorFactory = new EventProcessorFactory(mc);
-                
-                var eventProcessorHost = new EventProcessorHost(
-                    EventHubName,
-                    EventHubConsumerGroupName,
-                    EventHubConnectionString,
-                    StorageConnectionString,
-                    StorageContainer);
+                try
+                {
 
-                var _eventProcessorOptions = new EventProcessorOptions();
+                    //MessageConverter mc = new MessageConverter(MeasurementName, TimestampName, tags, fields);
+                    //EventProcessorFactory eventProcessorFactory = new EventProcessorFactory(mc);
+                    
+                    var eventProcessorHost = new EventProcessorHost(
+                        EventHubName,
+                        EventHubConsumerGroupName,
+                        EventHubConnectionString,
+                        StorageConnectionString,
+                        StorageContainer);
 
-                // Registers the Event Processor Host and starts receiving messages
-                await eventProcessorHost.RegisterEventProcessorFactoryAsync(eventProcessorFactory, _eventProcessorOptions);
+                    var _eventProcessorOptions = new EventProcessorOptions();
 
-                //await eventProcessorHost.RegisterEventProcessorAsync<EventProcessor>();
-                _logger.LogInformation("Started");
-                
-                startwait.Wait();                
-                _logger.LogInformation("Stopping");
-                
-                await eventProcessorHost.UnregisterEventProcessorAsync();
-                _logger.LogInformation("Stopped");
-                
-            }
-            catch (Exception e)
-            {
-                startwait.Set();
-                _logger.LogError($"{e}");
-            }
-            finally
-            {
-                ended.Set();                
+                    // Registers the Event Processor Host and starts receiving messages
+                    await eventProcessorHost.RegisterEventProcessorFactoryAsync(eventProcessorFactory, _eventProcessorOptions);
+
+                    //await eventProcessorHost.RegisterEventProcessorAsync<EventProcessor>();
+                    _logger.LogInformation("Started");
+
+                    startwait.Wait();
+                    _logger.LogInformation("Stopping");
+
+                    await eventProcessorHost.UnregisterEventProcessorAsync();
+                    _logger.LogInformation("Stopped");
+
+                }
+                catch (Exception e)
+                {
+                    startwait.Set();
+                    _logger.LogError($"{e}");
+                }
+                finally
+                {
+                    ended.Set();
+                }
             }
         }
 
