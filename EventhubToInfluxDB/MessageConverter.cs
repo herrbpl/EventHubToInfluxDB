@@ -151,7 +151,7 @@ namespace EventhubToInfluxDB
 
             result.Append(" ");
 
-            result.Append(new DateTimeOffset(dateTime).ToUnixTimeMilliseconds());
+            result.Append(new DateTimeOffset(dateTime).ToUnixTimeSeconds());
 
             return result.ToString();
         }
