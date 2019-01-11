@@ -27,7 +27,7 @@ namespace EventhubToInfluxDB
 
         static void Main(string[] args)
         {
-
+            
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var confbuilder = new ConfigurationBuilder()
                .SetBasePath(Directory.GetCurrentDirectory())
@@ -67,13 +67,14 @@ namespace EventhubToInfluxDB
                 e.Cancel = true;
             };
 
+            
             var program = new Program();
 
             Task.Run(async () => await program.RunServerAsync(args));
 
             //RunServerAsync(args).Wait();
             ended.Wait();
-                        
+                      
         }
 
 

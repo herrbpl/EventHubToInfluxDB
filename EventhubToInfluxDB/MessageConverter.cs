@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -27,9 +28,13 @@ namespace EventhubToInfluxDB
         List<string> _tagnames;
         List<string> _fieldnames;
 
+        ILogger _logger;
+
         //public MessageConverter(string measurementName, string timestampName, List<string> tagnames, List<string> fieldnames)
-        public MessageConverter(IOptionsMonitor<MessageConverterOptions> optionsMonitor)
+        public MessageConverter(ILogger<MessageConverter> logger, IOptionsMonitor<MessageConverterOptions> optionsMonitor)
         {
+            _logger = logger;
+
             var options = optionsMonitor.CurrentValue;
             _measurementName = options.Name ?? throw new ArgumentNullException();
 
@@ -45,12 +50,24 @@ namespace EventhubToInfluxDB
 
             // timestamp
             string timestampStr = (string)jdata.SelectToken(_timestampName);
-            
             DateTime dateTime;
-            if (timestampStr == null || !DateTime.TryParse(timestampStr, out dateTime)) {
+            try
+            {
+                dateTime = jdata.SelectToken(_timestampName).Value<DateTime>();
+
+            } catch (Exception e)
+            {
+                _logger.LogDebug($"Unable to find timestamp field, using local time");
                 dateTime = DateTime.UtcNow;
             }
 
+            /*
+            if (timestampStr == null || !DateTime.TryParse(timestampStr, out dateTime)) {
+                _logger.LogDebug("Using local timestamp.");
+                dateTime = DateTime.UtcNow;
+            }
+            //dateTime.Kind = DateTimeKind.Utc;
+            */
             List<string> _tags = new List<string>();
 
             var myTest2 = jdata.Descendants();
@@ -150,7 +167,7 @@ namespace EventhubToInfluxDB
             result.Append(String.Join(",", _fields.ToArray()));
 
             result.Append(" ");
-
+            
             result.Append(new DateTimeOffset(dateTime).ToUnixTimeSeconds());
 
             return result.ToString();

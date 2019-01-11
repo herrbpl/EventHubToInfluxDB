@@ -60,7 +60,8 @@ namespace EventhubToInfluxDB
 
                 if (result != null)
                 {
-                    Console.WriteLine(result);
+                    //Console.WriteLine(result);
+                    _logger.LogDebug($"Injecting {result}");
                     await _ii.InjectAsync(result);
                 }
 

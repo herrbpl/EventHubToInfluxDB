@@ -18,4 +18,7 @@
     <None Include="influxdb\Dockerfile" />
     <None Include="influxdb\entrypoint.sh" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NewFolder\" />
+  </ItemGroup>
 </Project>
