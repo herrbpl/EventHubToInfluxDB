@@ -262,3 +262,5 @@ __pycache__/
 /EventhubToInfluxDB/appsettings.Development.json
 /EventhubToInfluxDB/secure.env
 /EventhubToInfluxDB/settings.env
+/secure.env
+/settings.env

@@ -17,6 +17,10 @@
     <None Include="grafana\entrypoint.sh" />
     <None Include="influxdb\Dockerfile" />
     <None Include="influxdb\entrypoint.sh" />
+    <None Include="secure.env" />
+    <None Include="secure.env.example" />
+    <None Include="settings.env" />
+    <None Include="settings.env.example" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="NewFolder\" />
