@@ -78,6 +78,8 @@ namespace EventhubToInfluxDB
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning($"Unsuccessful call to server: {response.StatusCode}: {response.ReasonPhrase}");
+                _logger.LogWarning($"Url: {ub.Uri}");
+                _logger.LogWarning($"Payload:\n{payload}");
             }
 
         }

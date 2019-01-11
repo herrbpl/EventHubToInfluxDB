@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: eventhubtoinfluxdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eventhubtoinfluxdb
+  template:
+    metadata:
+      labels:
+        app: eventhubtoinfluxdb
+    spec:
+      containers:
+      - name: eventhubtoinfluxdb
+        image: mntcr.azurecr.io/eventhubtoinfluxdb:v1.0.0
+        envFrom:
+        - configMapRef:
+            name: roadweatherdash-settings        
+        - secretRef:
+            name: roadweatherdash-secrets

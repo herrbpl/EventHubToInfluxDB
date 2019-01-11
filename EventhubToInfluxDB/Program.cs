@@ -52,12 +52,20 @@ namespace EventhubToInfluxDB
                 return;
             }
 
-
+            if (args.ToList().Contains("--dumpconfig"))
+            {
+                // dump config:
+                Console.WriteLine("Configuration:");
+                foreach (var item in config.AsEnumerable())
+                {
+                    Console.WriteLine($"{item.Key} = {item.Value}");
+                }
+            }
             AssemblyLoadContext.Default.Unloading += ctx =>
             {
                 startwait.Set();
                 System.Console.WriteLine("Waiting for main thread shutdown");
-                ended.Wait();
+                ended.Wait(9000);
             };
 
             Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs e) =>
@@ -128,14 +136,14 @@ namespace EventhubToInfluxDB
             config.Bind("InfluxDb:Measurement:Tags", tags);
             config.Bind("InfluxDb:Measurement:Fields", fields);
             */
-
+            
             using (var scope = _serviceProvider.CreateScope())
             {
                 EventProcessorFactory eventProcessorFactory = scope.ServiceProvider.GetRequiredService<EventProcessorFactory>();
 
                 try
                 {
-
+                    
                     //MessageConverter mc = new MessageConverter(MeasurementName, TimestampName, tags, fields);
                     //EventProcessorFactory eventProcessorFactory = new EventProcessorFactory(mc);
                     
@@ -147,7 +155,9 @@ namespace EventhubToInfluxDB
                         StorageContainer);
 
                     var _eventProcessorOptions = new EventProcessorOptions();
-
+                    
+                    _eventProcessorOptions.ReceiveTimeout = TimeSpan.FromSeconds(8);
+                    
                     // Registers the Event Processor Host and starts receiving messages
                     await eventProcessorHost.RegisterEventProcessorFactoryAsync(eventProcessorFactory, _eventProcessorOptions);
 

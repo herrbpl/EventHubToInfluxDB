@@ -17,12 +17,13 @@
     <None Include="grafana\entrypoint.sh" />
     <None Include="influxdb\Dockerfile" />
     <None Include="influxdb\entrypoint.sh" />
+    <None Include="kubernetes\azure-grafana.yaml" />
+    <None Include="kubernetes\azure-influxdb.yaml" />
+    <None Include="kubernetes\eventhubtoinfluxdb.yaml" />
+    <None Include="kubernetes\roadweatherdash.yaml" />
     <None Include="secure.env" />
     <None Include="secure.env.example" />
     <None Include="settings.env" />
     <None Include="settings.env.example" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="NewFolder\" />
   </ItemGroup>
 </Project>

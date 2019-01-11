@@ -17,7 +17,12 @@ services:
       - '3000:3000'
     volumes:
       - E:\t\MNT\Visualisation\Dockerdata\grafana:/var/lib/grafana
+  eventhubtoinfluxdb:
+    image: ${DOCKER_REGISTRY}eventhubtoinfluxdb
+    build:
+      context: .
+      dockerfile: EventhubToInfluxDB/Dockerfile
+    env_file:
+      - secure.env
+      - settings.env
 
-volumes:
-  grafana_data: {}
-  influxdb_data: {}

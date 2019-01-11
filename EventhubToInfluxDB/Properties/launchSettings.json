@@ -2,6 +2,7 @@
   "profiles": {
     "EventhubToInfluxDB": {
       "commandName": "Project",
+      "commandLineArgs": "--dumpconfig",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

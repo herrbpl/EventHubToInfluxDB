@@ -21,24 +21,24 @@ namespace EventhubToInfluxDB
             _logger = logger ?? throw new ArgumentNullException();
             _mg = mg ?? throw new ArgumentNullException();
             _ii = influxInjector ?? throw new ArgumentNullException();
-            Console.WriteLine("EventProcessor created!");
+            _logger.LogInformation("EventProcessor created!");
         }
 
         public Task CloseAsync(PartitionContext context, CloseReason reason)
         {
-            Console.WriteLine($"Processor Shutting Down. Partition '{context.PartitionId}', Reason: '{reason}'.");
+            _logger.LogInformation($"Processor Shutting Down. Partition '{context.PartitionId}', Reason: '{reason}'.");
             return Task.CompletedTask;
         }
 
         public Task OpenAsync(PartitionContext context)
         {
-            Console.WriteLine($"SimpleEventProcessor initialized. Partition: '{context.PartitionId}'");
+            _logger.LogInformation($"SimpleEventProcessor initialized. Partition: '{context.PartitionId}'");
             return Task.CompletedTask;
         }
 
         public Task ProcessErrorAsync(PartitionContext context, Exception error)
         {
-            Console.WriteLine($"Error on Partition: {context.PartitionId}, Error: {error.Message}");
+            _logger.LogError($"Error on Partition: {context.PartitionId}, Error: {error.Message}");
             return Task.CompletedTask;
         }
 
@@ -61,6 +61,7 @@ namespace EventhubToInfluxDB
                 if (result != null)
                 {
                     //Console.WriteLine(result);
+                    //_logger.LogInformation($"Converted {data}");
                     _logger.LogDebug($"Injecting {result}");
                     await _ii.InjectAsync(result);
                 }

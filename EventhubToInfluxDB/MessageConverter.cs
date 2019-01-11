@@ -110,12 +110,12 @@ namespace EventhubToInfluxDB
                                 switch (value.Type)
                                 {
                                     case JTokenType.String:
-                                        _fields.Add(EscapeTag(parentProp.Name) + "=" + value.Value<string>().Replace("\"", "\\\""));
+                                    case JTokenType.Date:
+                                        _fields.Add(EscapeTag(parentProp.Name) + "=\"" + value.Value<string>().Replace("\"", "\\\"")+"\"");
                                         break;
                                     case JTokenType.Float:
                                     case JTokenType.Boolean:                                    
-                                    case JTokenType.Integer:
-                                    case JTokenType.Date:
+                                    case JTokenType.Integer:                                    
                                     case JTokenType.Guid:
                                         _fields.Add(EscapeTag(parentProp.Name) + "=" + value.Value<string>());
                                         break;
@@ -132,14 +132,14 @@ namespace EventhubToInfluxDB
                         switch (field.Type)
                         {
                             case JTokenType.String:
+                            case JTokenType.Date:
 
-                                
-                                _fields.Add(EscapeTag(parentProp.Name) + "=" + field.Value<string>().Replace("\"", "\\\""));
+                                _fields.Add(EscapeTag(parentProp.Name) + "=\"" + field.Value<string>().Replace("\"", "\\\"")+"\"");
                                 break;
                             case JTokenType.Float:
                             case JTokenType.Boolean:
                             case JTokenType.Integer:
-                            case JTokenType.Date:
+                            
                             case JTokenType.Guid:                                
 
                                 _fields.Add(EscapeTag(parentProp.Name) + "=" + field.Value<string>());
