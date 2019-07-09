@@ -1,7 +1,8 @@
 apiVersion: certmanager.k8s.io/v1alpha1
-kind: ClusterIssuer
+kind: Issuer
 metadata:
   name: letsencrypt-staging
+  namespace: default
 spec:
   acme:
     # You must replace this email address with your own.

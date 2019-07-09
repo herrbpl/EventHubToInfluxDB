@@ -31,7 +31,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
           - --v=2
-          - --cluster-resource-namespace=$(POD_NAMESPACE)
+          - --cluster-resource-namespace=default
           - --leader-election-namespace=$(POD_NAMESPACE)
           - --default-issuer-name=letsencrypt-prod
           - --default-issuer-kind=ClusterIssuer
