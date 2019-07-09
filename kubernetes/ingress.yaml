@@ -1,0 +1,24 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dashboard
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    certmanager.k8s.io/issuer: "letsencrypt-staging"
+    certmanager.k8s.io/acme-challenge-type: http01    
+spec:
+  tls:
+  - hosts:
+    - mnt.gttarkvara.ee
+    secretName: mnt-gttarkvara-ee-tls
+  rules:
+  - host: mnt.gttarkvara.ee
+    http:
+      paths:
+      - path: /grafana(/|$)(.*)
+        backend:
+          serviceName: roadweatherdash
+          servicePort: 3000
